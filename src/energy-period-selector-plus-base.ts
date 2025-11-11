@@ -115,7 +115,7 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
     ];
 
     // Subscribe to sync entity if configured
-    if (this._config?.sync_entity) {
+    if (this._config?.sync_entity || this._config?.sync_entity_end) {
       subscriptions.push(
         this.hass.connection.subscribeEvents(
           (ev) => this._handleEntityStateChange(ev),
@@ -502,12 +502,15 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
   }
 
   private _handleEntityStateChange(ev: any): void {
-    if (!this._config?.sync_entity || ev.data.entity_id !== this._config.sync_entity) {
+    const isStartEntity = this._config?.sync_entity && ev.data.entity_id === this._config.sync_entity;
+    const isEndEntity = this._config?.sync_entity_end && ev.data.entity_id === this._config.sync_entity_end;
+    
+    if (!isStartEntity && !isEndEntity) {
       return;
     }
     
 
-    const syncDirection = this._config.sync_direction || 'both';
+    const syncDirection = this._config?.sync_direction || 'both';
     if (syncDirection !== 'from-entity' && syncDirection !== 'both') {
       return;
     }
@@ -539,14 +542,28 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
       return;
     }
 
-    // Check if the entity date is actually different from current component date
-    if (this._startDate && Math.abs(entityDate.getTime() - this._startDate.getTime()) < 1000) {
-      return;
-    }
+    if (isStartEntity) {
+      // Check if the entity date is actually different from current component date
+      if (this._startDate && Math.abs(entityDate.getTime() - this._startDate.getTime()) < 1000) {
+        return;
+      }
 
-    // Update the selector to match the entity
-    this._lastSyncFromEntityTimestamp = now;
-    this._setDate(entityDate, undefined, true); // Skip entity sync to prevent loops
+      // Update the selector to match the entity
+      this._lastSyncFromEntityTimestamp = now;
+      this._setDate(entityDate, undefined, true); // Skip entity sync to prevent loops
+    } else if (isEndEntity) {
+      // Check if the entity date is actually different from current component date
+      if (this._endDate && Math.abs(entityDate.getTime() - this._endDate.getTime()) < 1000) {
+        return;
+      }
+
+      // Update the end date to match the entity
+      this._lastSyncFromEntityTimestamp = now;
+      // Only update if we have a start date and the new end date is after it
+      if (this._startDate && entityDate >= this._startDate) {
+        this._setDate(this._startDate, entityDate, true); // Skip entity sync to prevent loops
+      }
+    }
   }
 
   private _parseEntityDateTime(state: any): Date | null {
@@ -582,11 +599,11 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
   }
 
   private _syncToEntity(): void {
-    if (!this._config?.sync_entity || !this._startDate) {
+    if (!this._startDate) {
       return;
     }
 
-    const syncDirection = this._config.sync_direction || 'both';
+    const syncDirection = this._config?.sync_direction || 'both';
     if (syncDirection !== 'to-entity' && syncDirection !== 'both') {
       return;
     }
@@ -599,26 +616,40 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
 
     this._lastSyncToEntityTimestamp = now;
 
-    // Format the date for the entity
-    const entityDate = this._formatDateForEntity(this._startDate);
-    if (!entityDate) {
-      return;
+    // Sync start date entity if configured
+    if (this._config?.sync_entity) {
+      // Format the date for the entity
+      const entityDate = this._formatDateForEntity(this._startDate);
+      if (entityDate) {
+        // Call Home Assistant service to update the entity
+        this.hass.callService('input_datetime', 'set_datetime', {
+          entity_id: this._config.sync_entity,
+          ...entityDate
+        }).catch(error => {
+          console.warn('Failed to sync start date to entity:', error);
+        });
+      }
     }
 
-    // Call Home Assistant service to update the entity
-    this.hass.callService('input_datetime', 'set_datetime', {
-      entity_id: this._config.sync_entity,
-      ...entityDate
-    }).then(() => {
-      // Clear user action flag after successful sync
-      setTimeout(() => {
-        this._isUserAction = false;
-      }, 2000);
-    }).catch(error => {
-      console.warn('Failed to sync date to entity:', error);
-      // Clear user action flag even on error
+    // Sync end date entity if configured and end date exists
+    if (this._config?.sync_entity_end && this._endDate) {
+      // Format the date for the entity
+      const entityEndDate = this._formatDateForEntity(this._endDate);
+      if (entityEndDate) {
+        // Call Home Assistant service to update the entity
+        this.hass.callService('input_datetime', 'set_datetime', {
+          entity_id: this._config.sync_entity_end,
+          ...entityEndDate
+        }).catch(error => {
+          console.warn('Failed to sync end date to entity:', error);
+        });
+      }
+    }
+
+    // Clear user action flag after successful sync
+    setTimeout(() => {
       this._isUserAction = false;
-    });
+    }, 2000);
   }
 
   private _formatDateForEntity(date: Date): any | null {

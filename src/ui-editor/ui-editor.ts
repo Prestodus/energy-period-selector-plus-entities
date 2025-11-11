@@ -45,6 +45,7 @@ export class EnergyPeriodSelectorEditor extends LitElement implements LovelaceCa
           custom_period_label: optional(string()),
           compare_button_label: optional(string()),
           sync_entity: optional(string()),
+          sync_entity_end: optional(string()),
           sync_direction: optional(string()),
           layout_mode: optional(string()),
         })
@@ -174,6 +175,7 @@ export class EnergyPeriodSelectorEditor extends LitElement implements LovelaceCa
       today_button_type: this._config.today_button_type ?? 'text',
       period_buttons: this._config.period_buttons ?? ['day', 'week', 'month', 'year'],
       sync_entity: this._config.sync_entity ?? '',
+      sync_entity_end: this._config.sync_entity_end ?? '',
       sync_direction: this._config.sync_direction ?? 'both',
       layout_mode: this._config.layout_mode ?? 'standard',
     };
@@ -222,6 +224,18 @@ export class EnergyPeriodSelectorEditor extends LitElement implements LovelaceCa
           ></ha-selector>
         </div>
 
+        <div class="field">
+          <div class="caption">${localize('editor.fields.sync_entity_end')}</div>
+          <ha-selector
+            .hass=${this.hass}
+            .selector=${{ entity: { domain: ['input_datetime'] } }}
+            .value=${data.sync_entity_end ?? ''}
+            @value-changed=${(e: CustomEvent) => this._patch('sync_entity_end', e.detail.value || '')}
+          ></ha-selector>
+        </div>
+      </div>
+
+      <div class="two-col">
         <div class="field">
           <div class="caption">${localize('editor.fields.sync_direction')}</div>
           <ha-selector
