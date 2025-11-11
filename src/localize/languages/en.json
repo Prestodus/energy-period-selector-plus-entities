@@ -40,6 +40,7 @@
         "custom": "Custom"
       },
       "sync_entity": "Sync Date Entity",
+      "sync_entity_end": "Sync End Date Entity",
       "sync_direction": "Sync Direction",
       "sync_direction_options": {
         "both": "Bi-directional",

@@ -118,7 +118,8 @@ The UI Editor looks like this:
 | compare_button_type      | `string`  | undefined | If set, a button will be added to toggle the compare mode. Supported values are `icon` and `text`. |
 | period_buttons | `array` | undefined | If set, only buttons inside this array will be displayed. Supported values are `day`, `week`, `month`, `year` and `custom`. Order of your array will be applied. |
 | custom_period_label | `string` | undefined | If set, the label of the custom period button will be changed to this value. Otherwise will be synced to your HA language (If not, consider submitting a PR, adding your language to the localize function.) |
-| sync_entity | `string` | undefined | If set, the card will sync its selected date with the specified Home Assistant entity (e.g., `input_datetime.solar_chart_date`). |
+| sync_entity | `string` | undefined | If set, the card will sync its selected start date with the specified Home Assistant entity (e.g., `input_datetime.solar_chart_date`). |
+| sync_entity_end | `string` | undefined | If set, the card will sync its selected end date with the specified Home Assistant entity (e.g., `input_datetime.solar_chart_end_date`). This is particularly useful when using custom date ranges. |
 | sync_direction | `string` | `both` | Controls the sync direction. Supported values are `to-entity`, `from-entity`, and `both`. |
 
 
@@ -234,6 +235,21 @@ card_background: false
 period_buttons: [day, week, month, year]
 compare_button_type: icon
 sync_entity: input_datetime.solar_chart_date
+```
+
+<hr/>
+<img width="445" height="57" alt="image" src="https://github.com/user-attachments/assets/cce68151-04ad-48ad-9e06-671666921159" />
+
+```yaml
+# Sync both start and end dates for custom date ranges
+type: custom:energy-period-selector-plus
+layout_mode: compact
+card_background: false
+period_buttons: [day, week, month, year, custom]
+compare_button_type: icon
+sync_entity: input_datetime.energy_start_date
+sync_entity_end: input_datetime.energy_end_date
+sync_direction: both
 ```
 
 <hr/>
