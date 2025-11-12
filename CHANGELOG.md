@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- Fixed critical bug where end dates were not being stored correctly in sync entities
+  - Issue where going back a day would store today in the end date instead of yesterday
+  - Issue where going forward would store incorrect dates
+  - Single day view now always produces the same start and end date
+  - Week view now produces correct date ranges
+
+### Added
+- Added `prevent_future_dates` configuration option to cap end dates at today
+  - When enabled, week view caps at today when in current week
+  - When enabled, month view caps at today when in current month
+  - When enabled, year view caps at today when in current year
+  - Next arrow button is automatically disabled when at current period with this option enabled
+  - Useful for energy monitoring where future data doesn't exist
+- Added UI editor support for the new `prevent_future_dates` setting
+- Added comprehensive test suite for date calculation logic (20 new tests)
+
 ## [0.2.5] - 2024-12-19
 
 ### Changed
