@@ -266,6 +266,8 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
                       <ha-icon-button-next
                         .label=${this.hass.localize('ui.panel.lovelace.components.energy_period_selector.next')}
                         @click=${this._pickNext}
+                        .disabled=${this._isAtCurrentPeriod()}
+                        style=${this._isAtCurrentPeriod() ? 'opacity: 0.3; pointer-events: none;' : ''}
                       ></ha-icon-button-next>
                     `
                   : nothing}
@@ -448,7 +450,7 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
     
     const weekStartsOn = firstWeekdayIndex(this.hass.locale);
 
-    const endDate: Date =
+    let endDate: Date =
       this._period === 'day'
         ? endOfDay(startDate)
         : this._period === 'week'
@@ -460,6 +462,17 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
         : this._period === 'custom' && customEndDate
         ? endOfDay(customEndDate)
         : this._endDate || endOfToday();
+
+    // Cap end date to today if prevent_future_dates is enabled
+    if (this._config?.prevent_future_dates) {
+      const today = endOfToday();
+      if (endDate > today) {
+        endDate = today;
+      }
+    }
+
+    // Update the end date immediately to prevent race conditions
+    this._endDate = endDate;
 
     const energyCollection = getEnergyDataCollection(this.hass, {
       key: this.collectionKey,
@@ -765,6 +778,16 @@ export class EnergyPeriodSelectorBase extends SubscribeMixin(LitElement) {
         });
       });
     }, 100);
+  }
+
+  private _isAtCurrentPeriod(): boolean {
+    if (!this._config?.prevent_future_dates || !this._endDate) {
+      return false;
+    }
+    
+    const today = endOfToday();
+    // Check if the end date is today or in the future (within 1 second tolerance for time precision)
+    return this._endDate.getTime() >= today.getTime() - 1000;
   }
 
   updated(changedProperties: PropertyValues) {

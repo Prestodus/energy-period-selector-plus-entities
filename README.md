@@ -115,6 +115,7 @@ The UI Editor looks like this:
 | title | `string` | undefined | If set, a title will be added to the card. |
 | today_button_type        | `boolean`  | true | If set to `true`, a button will be added to select today. |
 | prev_next_buttons   | `boolean`  | true | If set to `true`, buttons will be added to control the previous and next period. |
+| prevent_future_dates | `boolean` | false | If set to `true`, end dates will be capped at today and the next button will be disabled when at the current period. Useful for energy monitoring where future data doesn't exist. |
 | compare_button_type      | `string`  | undefined | If set, a button will be added to toggle the compare mode. Supported values are `icon` and `text`. |
 | period_buttons | `array` | undefined | If set, only buttons inside this array will be displayed. Supported values are `day`, `week`, `month`, `year` and `custom`. Order of your array will be applied. |
 | custom_period_label | `string` | undefined | If set, the label of the custom period button will be changed to this value. Otherwise will be synced to your HA language (If not, consider submitting a PR, adding your language to the localize function.) |
@@ -250,6 +251,20 @@ compare_button_type: icon
 sync_entity: input_datetime.energy_start_date
 sync_entity_end: input_datetime.energy_end_date
 sync_direction: both
+```
+
+<hr/>
+
+```yaml
+# Prevent future dates - useful for energy monitoring
+type: custom:energy-period-selector-plus
+layout_mode: compact
+card_background: false
+period_buttons: [day, week, month, year]
+compare_button_type: icon
+prevent_future_dates: true
+sync_entity: input_datetime.energy_start_date
+sync_entity_end: input_datetime.energy_end_date
 ```
 
 <hr/>
