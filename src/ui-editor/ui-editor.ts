@@ -48,6 +48,7 @@ export class EnergyPeriodSelectorEditor extends LitElement implements LovelaceCa
           sync_entity_end: optional(string()),
           sync_direction: optional(string()),
           layout_mode: optional(string()),
+          prevent_future_dates: optional(boolean()),
         })
       )
     );
@@ -73,6 +74,10 @@ export class EnergyPeriodSelectorEditor extends LitElement implements LovelaceCa
             },
             {
               name: 'prev_next_buttons',
+              selector: { boolean: {} },
+            },
+            {
+              name: 'prevent_future_dates',
               selector: { boolean: {} },
             },
           ],

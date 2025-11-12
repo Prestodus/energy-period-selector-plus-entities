@@ -23,6 +23,7 @@
     "fields": {
       "card_background": "Card Background",
       "prev_next_buttons": "Show Previous/Next Buttons",
+      "prevent_future_dates": "Prevent Future Dates",
       "compare_button_type": "Compare Button Type",
       "custom_period_label": "Custom Period Label",
       "compare_button_options": {
